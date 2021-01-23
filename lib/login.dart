@@ -150,17 +150,25 @@ class LoginScreenState extends State<LoginScreen> {
         body: Stack(
           children: <Widget>[
             Center(
-              child: FlatButton(
-                  onPressed: handleSignIn,
-                  child: Text(
-                    'SIGN IN WITH GOOGLE',
-                    style: TextStyle(fontSize: 16.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Image.asset("images/icono.png",
+                    width: MediaQuery.of(context).size.width*0.7,
                   ),
-                  color: Color(0xffdd4b39),
-                  highlightColor: Color(0xffff7f7f),
-                  splashColor: Colors.transparent,
-                  textColor: Colors.white,
-                  padding: EdgeInsets.fromLTRB(30.0, 15.0, 30.0, 15.0)),
+                  FlatButton(
+                      onPressed: handleSignIn,
+                      child: Text(
+                        'SIGN IN WITH GOOGLE',
+                        style: TextStyle(fontSize: 16.0),
+                      ),
+                      color: Color(0xffdd4b39),
+                      highlightColor: Color(0xffff7f7f),
+                      splashColor: Colors.transparent,
+                      textColor: Colors.white,
+                      padding: EdgeInsets.fromLTRB(30.0, 15.0, 30.0, 15.0)),
+                ],
+              ),
             ),
 
             // Loading

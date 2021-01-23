@@ -8,6 +8,7 @@ dependencies:
   flutter:
     sdk: flutter
 
+  flutter_launcher_icons: ^0.7.4
   cupertino_icons: ^0.1.3 #0.1.2
   firebase_core : ^0.5.0
   firebase_auth: ^0.18.0+1  #0.14.0+5
@@ -41,3 +42,10 @@ flutter:
      - images/mimi7.gif
      - images/mimi8.gif
      - images/mimi9.gif
+     - images/
+
+
+flutter_icons:
+  image_path: 'images/icono.png'
+  android: true
+  ios: true

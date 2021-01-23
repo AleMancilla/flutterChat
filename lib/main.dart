@@ -17,11 +17,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Chat FLUTTER',
+      title: 'Donde esta mi mascota',
       theme: ThemeData(
         primaryColor: themeColor,
       ),
-      home: LoginScreen(title: 'CHAT FLUTTER'),
+      home: LoginScreen(title: 'Encuentra Tu Mascota'),
       debugShowCheckedModeBanner: false,
     );
   }
