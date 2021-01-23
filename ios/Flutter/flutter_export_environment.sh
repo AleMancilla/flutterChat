@@ -1,12 +1,10 @@
 #!/bin/sh
 # This is a generated file; do not edit or check into version control.
-export "FLUTTER_ROOT=/home/alejandro/flutter"
-export "FLUTTER_APPLICATION_PATH=/home/alejandro/Desktop/Practicas/Flutter/flutter-chat-demo"
+export "FLUTTER_ROOT=/home/ale/snap/flutter/common/flutter"
+export "FLUTTER_APPLICATION_PATH=/home/ale/Escritorio/Trabajos/FLUTTER/flutterChat"
 export "FLUTTER_TARGET=lib/main.dart"
 export "FLUTTER_BUILD_DIR=build"
 export "SYMROOT=${SOURCE_ROOT}/../build/ios"
-export "OTHER_LDFLAGS=$(inherited) -framework Flutter"
-export "FLUTTER_FRAMEWORK_DIR=/home/alejandro/flutter/bin/cache/artifacts/engine/ios"
 export "FLUTTER_BUILD_NAME=1.0.0"
 export "FLUTTER_BUILD_NUMBER=1"
 export "DART_OBFUSCATION=false"
