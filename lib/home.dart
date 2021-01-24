@@ -6,15 +6,19 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_demo/chat.dart';
 import 'package:flutter_chat_demo/const.dart';
 import 'package:flutter_chat_demo/settings.dart';
 import 'package:flutter_chat_demo/widget/loading.dart';
+import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 
 import 'main.dart';
 
@@ -258,7 +262,7 @@ class HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'USUARIOS',
+          'MASCOTAS',
           style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -467,12 +471,13 @@ class HomeScreenState extends State<HomeScreen> {
           );
         break;
       case 2:
-        return Container(
-          color: Colors.green,
-          child: Center(
-              child: Text("PUBLICAR MASCOTA PERDIDA"),
-            ),
-        );
+        return PublicarMascota();
+        // return Container(
+        //   color: Colors.green,
+        //   child: Center(
+        //       child: Text("PUBLICAR MASCOTA PERDIDA"),
+        //     ),
+        // );
         break;
       case 3:
         return SettingsScreen();
@@ -552,5 +557,277 @@ class _DestinationViewState extends State<DestinationView> {
   void dispose() {
     _textController.dispose();
     super.dispose();
+  }
+}
+
+/////////////////////////////
+///[PAGE ADD PERDIDO]
+
+class PublicarMascota extends StatefulWidget {
+  @override
+  _PublicarMascotaState createState() => _PublicarMascotaState();
+}
+
+class _PublicarMascotaState extends State<PublicarMascota> {
+
+  TextStyle styleText = TextStyle(fontSize: 16,fontWeight: FontWeight.w500);
+
+  String _chosenValue;
+
+  bool cat = false;
+  bool dog = false;
+  bool other = false;
+
+  bool macho = false;
+  bool hembra = false;
+
+  String estadoMascota = "";
+  String fechaEstado = "--/--/----";
+
+  String horaEstado = "00:00";
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Center(
+        child: Column(
+          children: [
+            SizedBox(height: 10.0,),
+            //////////////////////////////////////////////////
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: DropdownButton<String>(
+                focusColor:Colors.white,
+                value: _chosenValue,
+                //elevation: 5,
+                style: TextStyle(color: Colors.white),
+                iconEnabledColor:Colors.black,
+                items: <String>[
+                  'Mi mascota se perdio',
+                  'Encontre una mascota',
+                  'Quiero dar en adopcion',
+                  ].map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value,style:TextStyle(color:Colors.black),),
+                  );
+                }).toList(),
+                hint:Text(
+                  "Por que quieres publicar en nuestra aplicacion",
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500),
+                ),
+                onChanged: (String value) {
+                  setState(() {
+                    _chosenValue = value;
+                    switch (value) {
+                      case "Mi mascota se perdio":
+                          estadoMascota = "PERDIDO";
+                        break;
+                      case "Encontre una mascota":
+                          estadoMascota = "ENCONTRADO";
+                        break;
+                      case "Quiero dar en adopcion":
+                          estadoMascota = "ADOPCION";
+                        break;
+                      default:
+                        estadoMascota = "";
+                    }
+                    print(estadoMascota);
+                  });
+                },
+              ),
+            ),
+            //////////////////////////////////////////////////
+            SizedBox(height: 10.0,),
+            Text("Que raza es la mascota?",style: styleText,),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  GestureDetector(
+                    child: Column(
+                      children: [
+                        Image.asset(cat?"images/catc.png":"images/catb.png",fit: BoxFit.contain,width: 50,height: 50,),
+                        Text("Gato")
+                      ],
+                    ),
+                    onTap: (){
+                      cat = true;
+                      dog = false;
+                      other = false;
+                     setState(() {});
+                    },
+                  ),
+                  GestureDetector(
+                    child: Column(
+                      children: [
+                        Image.asset(dog?"images/dogc.png":"images/dogb.png",fit: BoxFit.contain,width: 50,height: 50,),
+                        Text("Perro")
+                      ],
+                    ),
+                    onTap: (){
+                      cat = false;
+                      dog = true;
+                      other = false;
+                     setState(() {});
+                    },
+                  ),
+                  GestureDetector(
+                    child: Column(
+                      children: [
+                        Image.asset(other?"images/otherc.png":"images/otherb.png",fit: BoxFit.contain,width: 50,height: 50,),
+                        Text("Otro")
+                      ],
+                    ),
+                    onTap: (){
+                      cat = false;
+                      dog = false;
+                      other = true;
+                     setState(() {});
+                    },
+                  ),
+                ],
+              ),
+            ),
+            /////////////////////////////////////////////////////////
+            SizedBox(height: 10.0,),
+            if(estadoMascota!="")FlatButton(
+              onPressed: () {
+              DatePicker.showDateTimePicker(context,
+                  showTitleActions: true,
+                  // minTime: DateTime(2018, 3, 5),
+                  // maxTime: DateTime(2019, 6, 7), 
+              onChanged: (date) {
+                print('change $date');
+              }, onConfirm: (date) {
+                // print('confirm ${date.month.}');
+                setState(() {});
+                fechaEstado = "${date.day.toString().padLeft(2,"0")}/${date.month.toString().padLeft(2,"0")}/${date.year.toString()}" ;
+                horaEstado = "${date.hour.toString().padLeft(2,"0")}:${date.minute.toString().padLeft(2,"0")}" ;
+              }, currentTime: DateTime.now(), locale: LocaleType.es);
+              },
+              child: Column(
+                children: [
+                  Text(
+                      'Que fecha ${estadoMascota=="PERDIDO"?"se perdio":estadoMascota=="ENCONTRADO"?"fue encontrado":"nacio"}',
+                      style: TextStyle(color: Colors.blue,fontSize: 16),
+                  ),
+                  Text(
+                      "$fechaEstado  -  $horaEstado",
+                      style: TextStyle(color: Colors.grey,fontSize: 25,)
+                  ),
+                ],
+              )
+            ),
+            /////////////////////////////////////////////////////////
+            SizedBox(height: 10.0,),
+            Row(
+              children: [
+                FlatButton(
+                  onPressed: getImage, 
+                  child: Column(
+                    children: [
+                      Text("Suba una foto de la mascota",style: styleText,),
+                        imageUrl==null?
+                          Image.asset("images/upload.png",width: 150,height: 150,):
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: FadeInImage(
+                              placeholder: AssetImage("images/upload.png"), 
+                              image: NetworkImage(imageUrl),
+                              fit: BoxFit.cover,
+                              width: 200,
+                              height: 200,
+                            ),
+                          ),
+                    ],
+                  )
+                ),
+                Column(
+                  children: [
+                      Text("Sexo",style: styleText,),
+                      FlatButton(
+                        onPressed: (){
+                          macho = true;
+                          hembra = false;
+                          setState(() { });
+                        }, 
+                        child: Column(
+                          children: [
+                            Image.asset(!macho?"images/machob.png":"images/machoc.png",width: macho? 60:40,fit: BoxFit.cover,),
+                            Text("MACHO")
+                          ],
+                        )
+                      ),
+
+                      FlatButton(
+                        onPressed: (){
+                          macho = false;
+                          hembra = true;
+                          setState(() { });
+                        }, 
+                        child: Column(
+                          children: [
+                            Image.asset(!hembra?"images/hembrab.png":"images/hembrac.png",width: hembra?60:40,fit: BoxFit.cover,),
+                            Text("HEMBRA")
+                          ],
+                        )
+                      ),
+                  ],
+                )
+
+              ],
+            ),
+            
+          ],
+        ),
+      ),
+    );
+  }
+
+  bool isLoading;
+  File imageFile;
+  String imageUrl;
+
+  Future getImage() async {
+
+    ImagePicker imagePicker = ImagePicker();
+    PickedFile pickedFile;
+
+    pickedFile = await imagePicker.getImage(source: ImageSource.gallery);
+    imageFile = File(pickedFile.path);
+
+    if (imageFile != null) {
+      setState(() {
+        isLoading = true;
+      });
+      uploadFile();
+    }
+  }
+
+  Future uploadFile() async {
+      Fluttertoast.showToast(msg: 'Porfavor espere mientras cargan los datos de la imagen',backgroundColor: Colors.green);
+
+    String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+    StorageReference reference = FirebaseStorage.instance.ref().child(fileName);
+    StorageUploadTask uploadTask = reference.putFile(imageFile);
+    StorageTaskSnapshot storageTaskSnapshot = await uploadTask.onComplete;
+    await storageTaskSnapshot.ref.getDownloadURL().then((downloadUrl) {
+      imageUrl = downloadUrl;
+      setState(() {
+        isLoading = false;
+        // onSendMessage(imageUrl, 1);
+
+      });
+    }, onError: (err) {
+      setState(() {
+        isLoading = false;
+      });
+      Fluttertoast.showToast(msg: 'This file is not an image');
+    });
   }
 }
