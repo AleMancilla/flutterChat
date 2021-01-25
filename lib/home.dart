@@ -181,7 +181,7 @@ class HomeScreenState extends State<HomeScreen> {
                       'Salir de la app',
                       style: TextStyle(
                           color: Colors.white,
-                          fontSize: 18.0,
+                          fontSize: 14.0,
                           fontWeight: FontWeight.bold),
                     ),
                     Text(
@@ -462,12 +462,13 @@ class HomeScreenState extends State<HomeScreen> {
   Widget bodyPage(int i){
     switch (i) {
       case 0:
-        return Container(
-          color: Colors.orange,
-          child: Center(
-            child: Text("PAGINA INICIO"),
-          ),
-        );
+      return PageListMascotas();
+        // return Container(
+        //   color: Colors.orange,
+        //   child: Center(
+        //     child: Text("PAGINA INICIO"),
+        //   ),
+        // );
         break;
       case 1:
         return Container(
@@ -1159,5 +1160,241 @@ class AddMascota extends StatelessWidget {
         "Publicar",
       ),
     );
+  }
+}
+
+class PageListMascotas extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: StreamBuilder(
+                stream:
+                    FirebaseFirestore.instance.collection('Mascota').snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(themeColor),
+                      ),
+                    );
+                  } else {
+                    return ListView.builder(
+                      padding: EdgeInsets.all(10.0),
+                      itemBuilder: (context, index) =>
+                          targetItem(context, snapshot.data.documents[index]),
+                      itemCount: snapshot.data.documents.length,
+                    );
+                  }
+                },
+              ),
+            
+      // List
+            // Container(
+            //   child: StreamBuilder(
+            //     stream:
+            //         FirebaseFirestore.instance.collection('users').snapshots(),
+            //     builder: (context, snapshot) {
+            //       if (!snapshot.hasData) {
+            //         return Center(
+            //           child: CircularProgressIndicator(
+            //             valueColor: AlwaysStoppedAnimation<Color>(themeColor),
+            //           ),
+            //         );
+            //       } else {
+            //         return ListView.builder(
+            //           padding: EdgeInsets.all(10.0),
+            //           itemBuilder: (context, index) =>
+            //               buildItem(context, snapshot.data.documents[index]),
+            //           itemCount: snapshot.data.documents.length,
+            //         );
+            //       }
+            //     },
+            //   ),
+            // ),
+    );
+  }
+
+  ///////////////
+  ///
+  
+  Widget targetItem(BuildContext context, DocumentSnapshot document) {
+    return Container(
+        child: FlatButton(
+          child: Column(
+            children: <Widget>[
+              Container(
+                width: MediaQuery.of(context).size.width*0.8,
+                height: MediaQuery.of(context).size.width*0.8,
+                child: Stack(
+                  children: [
+                    Material(
+                      child: document.data()['urlImageMascota'] != null
+                          ? CachedNetworkImage(
+                              placeholder: (context, url) => Container(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 1.0,
+                                  valueColor:
+                                      AlwaysStoppedAnimation<Color>(themeColor),
+                                ),
+                                width: MediaQuery.of(context).size.width*0.8,
+                                height: MediaQuery.of(context).size.width*0.8,
+                                padding: EdgeInsets.all(15.0),
+                              ),
+                              imageUrl: document.data()['urlImageMascota'],
+                              width: MediaQuery.of(context).size.width*0.8,
+                              height: MediaQuery.of(context).size.width*0.8,
+                              fit: BoxFit.cover,
+                            )
+                          : Icon(
+                              Icons.account_circle,
+                              size: MediaQuery.of(context).size.width*0.8,
+                              color: greyColor,
+                            ),
+                      borderRadius: BorderRadius.all(Radius.circular(25.0)),
+                      clipBehavior: Clip.hardEdge,
+                    ),
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 20,vertical: 10),
+                      decoration: BoxDecoration(
+                        color: document.data()['estadoMascota']=="PERDIDO"?Colors.orange:(document.data()['estadoMascota']=="ENCONTRADO")?Colors.green:(document.data()['estadoMascota']=="ADOPCION")?Colors.purple:Colors.green,
+                        borderRadius: BorderRadius.only(bottomRight: Radius.circular(15))
+                      ),
+                      child: Text("${document.data()['estadoMascota']=="PERDIDO"?"PERDIDO":(document.data()['estadoMascota']=="ENCONTRADO")?"ENCONTRADO":(document.data()['estadoMascota']=="ADOPCION")?"EN ADOPCION":"DESCONOCIDO"}",
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
+                    )
+                  ],
+                ),
+              ),
+              Container(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+
+                    RichText(
+                      text: TextSpan(
+                          text: '${document.data()['estadoMascota']=="PERDIDO"?"Me perdi el dia:":(document.data()['estadoMascota']=="ENCONTRADO")?"Me encontraron el dia:":(document.data()['estadoMascota']=="ADOPCION")?"Naci la fecha:":"Me perdi el dia:"}',
+                          style: TextStyle(
+                              color: Colors.black, fontSize: 14, fontWeight: FontWeight.w600),
+                          children: <TextSpan>[
+                            TextSpan(text: ' ${document.data()['fecha']}',
+                                style: TextStyle(
+                                    color: Colors.black, fontSize: 14,fontWeight: FontWeight.normal),
+                            )
+                          ]
+                      ),
+                    ),
+                    RichText(
+                      text: TextSpan(
+                          text: 'A horas:',
+                          style: TextStyle(
+                              color: Colors.black, fontSize: 14, fontWeight: FontWeight.w600),
+                          children: <TextSpan>[
+                            TextSpan(text: ' ${document.data()['hora']}',
+                                style: TextStyle(
+                                    color: Colors.black, fontSize: 14,fontWeight: FontWeight.normal),
+                            )
+                          ]
+                      ),
+                    ),
+                    RichText(
+                      text: TextSpan(
+                          text: 'En la zona:',
+                          style: TextStyle(
+                              color: Colors.black, fontSize: 14, fontWeight: FontWeight.w600),
+                          children: <TextSpan>[
+                            TextSpan(text: ' ${document.data()['ciudadMascota']}, ${document.data()['direccionMascota']}',
+                                style: TextStyle(
+                                    color: Colors.black, fontSize: 14,fontWeight: FontWeight.normal),
+                            )
+                          ]
+                      ),
+                    ),
+
+                    RichText(
+                      text: TextSpan(
+                          text: 'Soy de sexo',
+                          style: TextStyle(
+                              color: Colors.black, fontSize: 14, fontWeight: FontWeight.w600),
+                          children: <TextSpan>[
+                            TextSpan(text: ' ${(document.data()['sexoMascota']=="HEMBRA")?"FEMENINO":"MASCULINO"}',
+                                style: TextStyle(
+                                    color: Colors.black, fontSize: 14,fontWeight: FontWeight.normal),
+                            )
+                          ]
+                      ),
+                    ),
+
+                    RichText(
+                      text: TextSpan(
+                          text: 'Mi Descripcion:',
+                          style: TextStyle(
+                              color: Colors.black, fontSize: 14, fontWeight: FontWeight.w600),
+                          children: <TextSpan>[
+                            TextSpan(text: ' ${document.data()['descripcionMascota']}',
+                                style: TextStyle(
+                                    color: Colors.black, fontSize: 14,fontWeight: FontWeight.normal),
+                            )
+                          ]
+                      ),
+                    ),
+
+
+                    RichText(
+                      text: TextSpan(
+                          text: 'Nombre de mi ${document.data()['estadoMascota']=="PERDIDO"?"Dueño es:":(document.data()['estadoMascota']=="ENCONTRADO")?"rescatador es:":(document.data()['estadoMascota']=="ADOPCION")?"adoptador es:":"dueño es:"}:',
+                          style: TextStyle(
+                              color: Colors.black, fontSize: 14, fontWeight: FontWeight.w600),
+                          children: <TextSpan>[
+                            TextSpan(text: ' ${document.data()['namePropietario']}',
+                                style: TextStyle(
+                                    color: Colors.black, fontSize: 14,fontWeight: FontWeight.normal),
+                            )
+                          ]
+                      ),
+                    ),
+                    RichText(
+                      text: TextSpan(
+                          text: 'Lo puedes llamar al numero:',
+                          style: TextStyle(
+                              color: Colors.black, fontSize: 14, fontWeight: FontWeight.w600),
+                          children: <TextSpan>[
+                            TextSpan(text: ' ${document.data()['numberPropietario']}',
+                                style: TextStyle(
+                                    color: Colors.black, fontSize: 14,fontWeight: FontWeight.normal),
+                            )
+                          ]
+                      ),
+                    ),
+
+                  ],
+                ),
+                // margin: EdgeInsets.only(left: 20.0),
+              ),
+            ],
+          ),
+          onPressed: () {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => Chat(
+                          peerId: document.id,
+                          peerAvatar: document.data()['urlImageMascota'],
+                        )));
+          },
+          color: greyColor2,
+          padding: EdgeInsets.fromLTRB(25.0, 10.0, 25.0, 10.0),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+        ),
+        margin: EdgeInsets.only(bottom: 10.0, left: 5.0, right: 5.0),
+      );
+    
+    // if (document.data()['id'] == currentUserId) {
+    //   return Container();
+    // } else {
+    //   return 
+    // }
   }
 }
