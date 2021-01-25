@@ -7,6 +7,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_demo/chat.dart';
 import 'package:flutter_chat_demo/const.dart';
@@ -15,10 +17,11 @@ import 'package:flutter_chat_demo/widget/loading.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:geolocator/geolocator.dart';
 
 import 'main.dart';
 
@@ -587,203 +590,281 @@ class _PublicarMascotaState extends State<PublicarMascota> {
   String horaEstado = "00:00";
 
   @override
+  void initState() {
+    super.initState();
+    readLocalization();
+  }
+  Position position;
+  GoogleMapController mapController;
+  void readLocalization() async{
+    try {
+      position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      positionMap = CameraPosition(
+        target: LatLng(position.latitude, position.longitude),
+        zoom: 16
+      );
+      // setState(() {});
+      _moveTo(positionMap);
+    } catch (e) {
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Center(
-        child: Column(
-          children: [
-            SizedBox(height: 10.0,),
-            //////////////////////////////////////////////////
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: DropdownButton<String>(
-                focusColor:Colors.white,
-                value: _chosenValue,
-                //elevation: 5,
-                style: TextStyle(color: Colors.white),
-                iconEnabledColor:Colors.black,
-                items: <String>[
-                  'Mi mascota se perdio',
-                  'Encontre una mascota',
-                  'Quiero dar en adopcion',
-                  ].map<DropdownMenuItem<String>>((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value,style:TextStyle(color:Colors.black),),
-                  );
-                }).toList(),
-                hint:Text(
-                  "Por que quieres publicar en nuestra aplicacion",
-                  style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              SizedBox(height: 10.0,),
+              //////////////////////////////////////////////////
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: DropdownButton<String>(
+                  focusColor:Colors.white,
+                  value: _chosenValue,
+                  //elevation: 5,
+                  style: TextStyle(color: Colors.white),
+                  iconEnabledColor:Colors.black,
+                  items: <String>[
+                    'Mi mascota se perdio',
+                    'Encontre una mascota',
+                    'Quiero dar en adopcion',
+                    ].map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value,style:TextStyle(color:Colors.black),),
+                    );
+                  }).toList(),
+                  hint:Text(
+                    "Por que quieres publicar en nuestra aplicacion",
+                    style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500),
+                  ),
+                  onChanged: (String value) {
+                    setState(() {
+                      _chosenValue = value;
+                      switch (value) {
+                        case "Mi mascota se perdio":
+                            estadoMascota = "PERDIDO";
+                          break;
+                        case "Encontre una mascota":
+                            estadoMascota = "ENCONTRADO";
+                          break;
+                        case "Quiero dar en adopcion":
+                            estadoMascota = "ADOPCION";
+                          break;
+                        default:
+                          estadoMascota = "";
+                      }
+                      print(estadoMascota);
+                    });
+                  },
                 ),
-                onChanged: (String value) {
-                  setState(() {
-                    _chosenValue = value;
-                    switch (value) {
-                      case "Mi mascota se perdio":
-                          estadoMascota = "PERDIDO";
-                        break;
-                      case "Encontre una mascota":
-                          estadoMascota = "ENCONTRADO";
-                        break;
-                      case "Quiero dar en adopcion":
-                          estadoMascota = "ADOPCION";
-                        break;
-                      default:
-                        estadoMascota = "";
-                    }
-                    print(estadoMascota);
-                  });
-                },
               ),
-            ),
-            //////////////////////////////////////////////////
-            SizedBox(height: 10.0,),
-            Text("Que raza es la mascota?",style: styleText,),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  GestureDetector(
-                    child: Column(
-                      children: [
-                        Image.asset(cat?"images/catc.png":"images/catb.png",fit: BoxFit.contain,width: 50,height: 50,),
-                        Text("Gato")
-                      ],
-                    ),
-                    onTap: (){
-                      cat = true;
-                      dog = false;
-                      other = false;
-                     setState(() {});
-                    },
-                  ),
-                  GestureDetector(
-                    child: Column(
-                      children: [
-                        Image.asset(dog?"images/dogc.png":"images/dogb.png",fit: BoxFit.contain,width: 50,height: 50,),
-                        Text("Perro")
-                      ],
-                    ),
-                    onTap: (){
-                      cat = false;
-                      dog = true;
-                      other = false;
-                     setState(() {});
-                    },
-                  ),
-                  GestureDetector(
-                    child: Column(
-                      children: [
-                        Image.asset(other?"images/otherc.png":"images/otherb.png",fit: BoxFit.contain,width: 50,height: 50,),
-                        Text("Otro")
-                      ],
-                    ),
-                    onTap: (){
-                      cat = false;
-                      dog = false;
-                      other = true;
-                     setState(() {});
-                    },
-                  ),
-                ],
-              ),
-            ),
-            /////////////////////////////////////////////////////////
-            SizedBox(height: 10.0,),
-            if(estadoMascota!="")FlatButton(
-              onPressed: () {
-              DatePicker.showDateTimePicker(context,
-                  showTitleActions: true,
-                  // minTime: DateTime(2018, 3, 5),
-                  // maxTime: DateTime(2019, 6, 7), 
-              onChanged: (date) {
-                print('change $date');
-              }, onConfirm: (date) {
-                // print('confirm ${date.month.}');
-                setState(() {});
-                fechaEstado = "${date.day.toString().padLeft(2,"0")}/${date.month.toString().padLeft(2,"0")}/${date.year.toString()}" ;
-                horaEstado = "${date.hour.toString().padLeft(2,"0")}:${date.minute.toString().padLeft(2,"0")}" ;
-              }, currentTime: DateTime.now(), locale: LocaleType.es);
-              },
-              child: Column(
-                children: [
-                  Text(
-                      'Que fecha ${estadoMascota=="PERDIDO"?"se perdio":estadoMascota=="ENCONTRADO"?"fue encontrado":"nacio"}',
-                      style: TextStyle(color: Colors.blue,fontSize: 16),
-                  ),
-                  Text(
-                      "$fechaEstado  -  $horaEstado",
-                      style: TextStyle(color: Colors.grey,fontSize: 25,)
-                  ),
-                ],
-              )
-            ),
-            /////////////////////////////////////////////////////////
-            SizedBox(height: 10.0,),
-            Row(
-              children: [
-                FlatButton(
-                  onPressed: getImage, 
-                  child: Column(
-                    children: [
-                      Text("Suba una foto de la mascota",style: styleText,),
-                        imageUrl==null?
-                          Image.asset("images/upload.png",width: 150,height: 150,):
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(20),
-                            child: FadeInImage(
-                              placeholder: AssetImage("images/upload.png"), 
-                              image: NetworkImage(imageUrl),
-                              fit: BoxFit.cover,
-                              width: 200,
-                              height: 200,
-                            ),
-                          ),
-                    ],
-                  )
-                ),
-                Column(
+              //////////////////////////////////////////////////
+              SizedBox(height: 10.0,),
+              Text("Que raza es la mascota?",style: styleText,),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                      Text("Sexo",style: styleText,),
-                      FlatButton(
-                        onPressed: (){
-                          macho = true;
-                          hembra = false;
-                          setState(() { });
-                        }, 
-                        child: Column(
-                          children: [
-                            Image.asset(!macho?"images/machob.png":"images/machoc.png",width: macho? 60:40,fit: BoxFit.cover,),
-                            Text("MACHO")
-                          ],
-                        )
+                    GestureDetector(
+                      child: Column(
+                        children: [
+                          Image.asset(cat?"images/catc.png":"images/catb.png",fit: BoxFit.contain,width: 50,height: 50,),
+                          Text("Gato")
+                        ],
                       ),
-
-                      FlatButton(
-                        onPressed: (){
-                          macho = false;
-                          hembra = true;
-                          setState(() { });
-                        }, 
-                        child: Column(
-                          children: [
-                            Image.asset(!hembra?"images/hembrab.png":"images/hembrac.png",width: hembra?60:40,fit: BoxFit.cover,),
-                            Text("HEMBRA")
-                          ],
-                        )
+                      onTap: (){
+                        cat = true;
+                        dog = false;
+                        other = false;
+                       setState(() {});
+                      },
+                    ),
+                    GestureDetector(
+                      child: Column(
+                        children: [
+                          Image.asset(dog?"images/dogc.png":"images/dogb.png",fit: BoxFit.contain,width: 50,height: 50,),
+                          Text("Perro")
+                        ],
                       ),
+                      onTap: (){
+                        cat = false;
+                        dog = true;
+                        other = false;
+                       setState(() {});
+                      },
+                    ),
+                    GestureDetector(
+                      child: Column(
+                        children: [
+                          Image.asset(other?"images/otherc.png":"images/otherb.png",fit: BoxFit.contain,width: 50,height: 50,),
+                          Text("Otro")
+                        ],
+                      ),
+                      onTap: (){
+                        cat = false;
+                        dog = false;
+                        other = true;
+                       setState(() {});
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              /////////////////////////////////////////////////////////
+              SizedBox(height: 10.0,),
+              if(estadoMascota!="")FlatButton(
+                onPressed: () {
+                DatePicker.showDateTimePicker(context,
+                    showTitleActions: true,
+                    // minTime: DateTime(2018, 3, 5),
+                    // maxTime: DateTime(2019, 6, 7), 
+                onChanged: (date) {
+                  print('change $date');
+                }, onConfirm: (date) {
+                  // print('confirm ${date.month.}');
+                  setState(() {});
+                  fechaEstado = "${date.day.toString().padLeft(2,"0")}/${date.month.toString().padLeft(2,"0")}/${date.year.toString()}" ;
+                  horaEstado = "${date.hour.toString().padLeft(2,"0")}:${date.minute.toString().padLeft(2,"0")}" ;
+                }, currentTime: DateTime.now(), locale: LocaleType.es);
+                },
+                child: Column(
+                  children: [
+                    Text(
+                        'Que fecha ${estadoMascota=="PERDIDO"?"se perdio":estadoMascota=="ENCONTRADO"?"fue encontrado":"nacio"}',
+                        style: TextStyle(color: Colors.blue,fontSize: 16),
+                    ),
+                    Text(
+                        "$fechaEstado  -  $horaEstado",
+                        style: TextStyle(color: Colors.grey,fontSize: 25,)
+                    ),
                   ],
                 )
+              ),
+              /////////////////////////////////////////////////////////
+              SizedBox(height: 10.0,),
+              Row(
+                children: [
+                  FlatButton(
+                    onPressed: getImage, 
+                    child: Column(
+                      children: [
+                        Text("Suba una foto de la mascota",style: styleText,),
+                          imageUrl==null?
+                            Image.asset("images/upload.png",width: 150,height: 150,):
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(20),
+                              child: FadeInImage(
+                                placeholder: AssetImage("images/upload.png"), 
+                                image: NetworkImage(imageUrl),
+                                fit: BoxFit.cover,
+                                width: 200,
+                                height: 200,
+                              ),
+                            ),
+                      ],
+                    )
+                  ),
+                  Column(
+                    children: [
+                        Text("Sexo",style: styleText,),
+                        FlatButton(
+                          onPressed: (){
+                            macho = true;
+                            hembra = false;
+                            setState(() { });
+                          }, 
+                          child: Column(
+                            children: [
+                              Image.asset(!macho?"images/machob.png":"images/machoc.png",width: macho? 60:40,fit: BoxFit.cover,),
+                              Text("MACHO")
+                            ],
+                          )
+                        ),
 
-              ],
-            ),
-            
-          ],
+                        FlatButton(
+                          onPressed: (){
+                            macho = false;
+                            hembra = true;
+                            setState(() { });
+                          }, 
+                          child: Column(
+                            children: [
+                              Image.asset(!hembra?"images/hembrab.png":"images/hembrac.png",width: hembra?60:40,fit: BoxFit.cover,),
+                              Text("HEMBRA")
+                            ],
+                          )
+                        ),
+                    ],
+                  )
+
+                ],
+              ),
+              /////////////////////////////////////////////////////////
+              SizedBox(height: 10.0,),
+              Text("Donde se perdio?",style: styleText,),
+              Container(
+                width: double.infinity,
+                height: 200,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    GoogleMap(
+                      mapType: MapType.normal,
+                      initialCameraPosition: positionMap,
+                      rotateGesturesEnabled: false,
+                      onCameraIdle: (){
+                        print("hhhhhhhhh $positionMap");
+                      },
+                      onCameraMove: (value){
+                        // print("###### $value");
+                        positionMap = value;
+                      },
+                      onCameraMoveStarted: (){
+                        // print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+                      },
+                      onMapCreated: (GoogleMapController controller) {
+                        _controller.complete(controller);
+                      },
+                      // markers: _markers,
+                      // initialCameraPosition: kGooglePlex,
+                      // onMapCreated: (GoogleMapController controller) {
+                      //   _controller.complete(controller);
+                      //   mapController = controller;
+
+                      // },
+                       gestureRecognizers: Set()
+                      ..add(
+                          Factory<PanGestureRecognizer>(() => PanGestureRecognizer()))
+                      ..add(
+                        Factory<VerticalDragGestureRecognizer>(
+                            () => VerticalDragGestureRecognizer()),
+                      )
+                      ..add(
+                        Factory<HorizontalDragGestureRecognizer>(
+                            () => HorizontalDragGestureRecognizer()),
+                      )
+                      ..add(
+                        Factory<ScaleGestureRecognizer>(
+                            () => ScaleGestureRecognizer()),
+                      ),
+                    ),
+                    Image.asset("images/marker.png",width: 50,)
+                  ],
+                ),
+              ),
+              /////////////////////////////////////////////////////////////
+              Text("Detalle la direccion",style: styleText,),
+
+
+            ],
+          ),
         ),
       ),
     );
@@ -829,5 +910,17 @@ class _PublicarMascotaState extends State<PublicarMascota> {
       });
       Fluttertoast.showToast(msg: 'This file is not an image');
     });
+  }
+
+  //////////////////////////////////////////
+  CameraPosition positionMap = new CameraPosition(
+    target: LatLng(-16.482557865279468, -68.1214064732194),
+    zoom: 16
+  );
+
+  Completer<GoogleMapController> _controller = Completer();
+  Future<void> _moveTo(CameraPosition position) async {
+    final GoogleMapController controller = await _controller.future;
+    controller.animateCamera(CameraUpdate.newCameraPosition(position));
   }
 }
