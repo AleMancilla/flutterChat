@@ -477,12 +477,13 @@ class HomeScreenState extends State<HomeScreen> {
         // );
         break;
       case 1:
-        return Container(
-          color: Colors.blue,
-            child: Center(
-              child: Text("PAGINA DE MAPA"),
-            ),
-          );
+      return PageMapa();
+        // return Container(
+        //   color: Colors.blue,
+        //     child: Center(
+        //       child: Text("PAGINA DE MAPA"),
+        //     ),
+        //   );
         break;
       case 2:
         return PublicarMascota(currentUserId: this.widget.currentUserId,);
@@ -1109,8 +1110,20 @@ class AddMascota extends StatelessWidget {
             'descripcionMascota':descripcionMascota,
             'namePropietario':namePropietario,
             'numberPropietario':numberPropietario,
+            'timestamp': DateTime.now().millisecondsSinceEpoch.toString(),
           })
-          .then((value) => print("Mascota Added"))
+          .then((value) { 
+
+          Fluttertoast.showToast(
+          msg: 'SE PUBLICO CORRECTAMENTE',
+          backgroundColor: Colors.black,
+          textColor: Colors.white);
+            print("Mascota Added ${value.id}");
+            FirebaseFirestore.instance.collection('Mascota').doc(value.id)
+              .update({'id': value.id})
+              .then((value) => print("User Updated"))
+              .catchError((error) => print("Failed to update user: $error"));
+          })
           .catchError((error) => print("Failed to add mascota: $error"));
     }
 
@@ -1413,4 +1426,58 @@ class PageListMascotas extends StatelessWidget {
     //   return 
     // }
   }
+}
+
+class PageMapa extends StatefulWidget {
+  @override
+  _PageMapaState createState() => _PageMapaState();
+}
+
+class _PageMapaState extends State<PageMapa> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: StreamBuilder(
+        stream:
+            FirebaseFirestore.instance.collection('Mascota').snapshots(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(themeColor),
+              ),
+            );
+          } else {
+            List lista = snapshot.data.documents;
+            lista.forEach((element) { 
+              print("##-- ${element.data()}");
+              // List coordenadas = element.data()["coordenadasMascota"].split(",")??["",""];
+              // MarcadorMascota(
+              //   estado: element.data()["estadoMascota"], 
+              //   ubicacion: LatLng(coordenadas[0], coordenadas[1]), 
+              //   idMascota: element.
+              // );
+
+            });
+            return Container();
+            // return ListView.builder(
+            //   padding: EdgeInsets.all(10.0),
+            //   itemBuilder: (context, index) =>
+            //       buildItem(context, snapshot.data.documents[index]),
+            //   itemCount: snapshot.data.documents.length,
+            // );
+          }
+        },
+      ),
+    );
+  }
+}
+
+class MarcadorMascota{
+  final String estado;
+  final LatLng ubicacion;
+  final String idMascota;
+
+  MarcadorMascota({@required this.estado,@required  this.ubicacion,@required  this.idMascota});
+  
 }
