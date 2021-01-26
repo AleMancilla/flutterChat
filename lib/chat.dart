@@ -185,6 +185,9 @@ class ChatScreenState extends State<ChatScreen> {
           .doc(groupChatId)
           .collection(groupChatId)
           .doc(DateTime.now().millisecondsSinceEpoch.toString());
+      var documentReferenceMess = FirebaseFirestore.instance
+          .collection('messagesRef')
+          .doc(peerId);
 
       FirebaseFirestore.instance.runTransaction((transaction) async {
         transaction.set(
@@ -195,6 +198,15 @@ class ChatScreenState extends State<ChatScreen> {
             'timestamp': DateTime.now().millisecondsSinceEpoch.toString(),
             'content': content,
             'type': type
+          },
+        );
+      });
+      FirebaseFirestore.instance.runTransaction((transaction) async {
+        transaction.set(
+          documentReferenceMess,
+          {
+            'idFrom': id,
+            'idTo': peerId,
           },
         );
       });

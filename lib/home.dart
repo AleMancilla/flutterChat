@@ -116,7 +116,7 @@ class HomeScreenState extends State<HomeScreen> {
       handleSignOut();
     } else {
       Navigator.push(
-          context, MaterialPageRoute(builder: (context) => ChatSettings()));
+          context, MaterialPageRoute(builder: (context) => ChatSettings(currentId: this.currentUserId,)));
     }
   }
 
@@ -488,7 +488,7 @@ class HomeScreenState extends State<HomeScreen> {
         // );
         break;
       case 3:
-        return SettingsScreen();
+        return SettingsScreen(currentId: this.currentUserId);
       // Navigator.push(
       //     context, MaterialPageRoute(builder: (context) => ChatSettings()));
         // return Container(color: Colors.pink,);
@@ -1256,16 +1256,26 @@ class PageListMascotas extends StatelessWidget {
                     Container(
                       padding: EdgeInsets.symmetric(horizontal: 20,vertical: 10),
                       decoration: BoxDecoration(
-                        color: document.data()['estadoMascota']=="PERDIDO"?Colors.orange:(document.data()['estadoMascota']=="ENCONTRADO")?Colors.green:(document.data()['estadoMascota']=="ADOPCION")?Colors.purple:Colors.green,
+                        color: document.data()['estadoMascota']=="PERDIDO"?Colors.orange:(document.data()['estadoMascota']=="ENCONTRADO")?Colors.green:(document.data()['estadoMascota']=="EN ADOPCION")?Colors.purple:Colors.green,
                         borderRadius: BorderRadius.only(bottomRight: Radius.circular(15))
                       ),
-                      child: Text("${document.data()['estadoMascota']=="PERDIDO"?"PERDIDO":(document.data()['estadoMascota']=="ENCONTRADO")?"ENCONTRADO":(document.data()['estadoMascota']=="ADOPCION")?"EN ADOPCION":"DESCONOCIDO"}",
+                      child: Text("${document.data()['estadoMascota']=="PERDIDO"?"PERDIDO":(document.data()['estadoMascota']=="ENCONTRADO")?"ENCONTRADO":(document.data()['estadoMascota']=="EN ADOPCION")?"EN ADOPCION":"DESCONOCIDO"}",
                         style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                       ),
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Image.asset(
+                        document.data()['tipoMascota']=="PERRO"?"images/dogc.png":document.data()['tipoMascota']=="GATO"?"images/catc.png":document.data()['tipoMascota']=="OTRO"?"images/otherc.png":"images/otherc.png",
+                        height: 50,
+                        width: 50,
+                      )
                     )
                   ],
                 ),
               ),
+              SizedBox(height: 15,),
               Container(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
@@ -1274,7 +1284,7 @@ class PageListMascotas extends StatelessWidget {
 
                     RichText(
                       text: TextSpan(
-                          text: '${document.data()['estadoMascota']=="PERDIDO"?"Me perdi el dia:":(document.data()['estadoMascota']=="ENCONTRADO")?"Me encontraron el dia:":(document.data()['estadoMascota']=="ADOPCION")?"Naci la fecha:":"Me perdi el dia:"}',
+                          text: '${document.data()['estadoMascota']=="PERDIDO"?"Me perdi el dia:":(document.data()['estadoMascota']=="ENCONTRADO")?"Me encontraron el dia:":(document.data()['estadoMascota']=="EN ADOPCION")?"Naci la fecha:":"Me perdi el dia:"}',
                           style: TextStyle(
                               color: Colors.black, fontSize: 14, fontWeight: FontWeight.w600),
                           children: <TextSpan>[

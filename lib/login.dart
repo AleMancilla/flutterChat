@@ -93,16 +93,35 @@ class LoginScreenState extends State<LoginScreen> {
       final List<DocumentSnapshot> documents = result.docs;
       if (documents.length == 0) {
         // Update data to server if new user
-        FirebaseFirestore.instance
-            .collection('users')
-            .doc(firebaseUser.uid)
-            .set({
+        FirebaseFirestore.instance.runTransaction((transaction) async{
+          transaction.set(FirebaseFirestore.instance.collection('users')
+            .doc(firebaseUser.uid),{
           'nickname': firebaseUser.displayName,
           'photoUrl': firebaseUser.photoURL,
           'id': firebaseUser.uid,
           'createdAt': DateTime.now().millisecondsSinceEpoch.toString(),
           'chattingWith': null
         });
+        });
+        //     .collection('users')
+        //     .doc(firebaseUser.uid)
+        //     .set({
+        //   'nickname': firebaseUser.displayName,
+        //   'photoUrl': firebaseUser.photoURL,
+        //   'id': firebaseUser.uid,
+        //   'createdAt': DateTime.now().millisecondsSinceEpoch.toString(),
+        //   'chattingWith': null
+        // });
+
+      //   FirebaseFirestore.instance.runTransaction((transaction) async {
+      //   transaction.set(
+      //     documentReferenceMess,
+      //     {
+      //       'idFrom': id,
+      //       'idTo': peerId,
+      //     },
+      //   );
+      // });
 
         // Write data to local
         currentUser = firebaseUser;
