@@ -116,7 +116,7 @@ class HomeScreenState extends State<HomeScreen> {
       handleSignOut();
     } else {
       Navigator.push(
-          context, MaterialPageRoute(builder: (context) => ChatSettings(currentId: this.currentUserId,)));
+          context, MaterialPageRoute(builder: (context) => ChatSettings(currentId: this.widget.currentUserId,)));
     }
   }
 
@@ -441,11 +441,17 @@ class HomeScreenState extends State<HomeScreen> {
             ],
           ),
           onPressed: () {
+
+            // print("""
+            // esto manda##
+            // ${document.id} --- ${ document.data()['userId']}
+            
+            // """);
             Navigator.push(
                 context,
                 MaterialPageRoute(
                     builder: (context) => Chat(
-                          peerId: document.id,
+                          peerId: document.data()['userId'],
                           peerAvatar: document.data()['photoUrl'],
                         )));
           },
@@ -488,7 +494,7 @@ class HomeScreenState extends State<HomeScreen> {
         // );
         break;
       case 3:
-        return SettingsScreen(currentId: this.currentUserId);
+        return SettingsScreen(currentId: this.widget.currentUserId);
       // Navigator.push(
       //     context, MaterialPageRoute(builder: (context) => ChatSettings()));
         // return Container(color: Colors.pink,);
@@ -1389,7 +1395,7 @@ class PageListMascotas extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                     builder: (context) => Chat(
-                          peerId: document.id,
+                          peerId: document.data()['userId'],
                           peerAvatar: document.data()['urlImageMascota'],
                         )));
           },

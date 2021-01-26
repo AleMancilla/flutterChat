@@ -185,9 +185,9 @@ class ChatScreenState extends State<ChatScreen> {
           .doc(groupChatId)
           .collection(groupChatId)
           .doc(DateTime.now().millisecondsSinceEpoch.toString());
-      var documentReferenceMess = FirebaseFirestore.instance
-          .collection('messagesRef')
-          .doc(peerId);
+      // var documentReferenceMess = FirebaseFirestore.instance
+      //     .collection('messagesRef')
+      //     .doc(peerId);
 
       FirebaseFirestore.instance.runTransaction((transaction) async {
         transaction.set(
@@ -201,15 +201,16 @@ class ChatScreenState extends State<ChatScreen> {
           },
         );
       });
-      FirebaseFirestore.instance.runTransaction((transaction) async {
-        transaction.set(
-          documentReferenceMess,
-          {
-            'idFrom': id,
-            'idTo': peerId,
-          },
-        );
-      });
+      // FirebaseFirestore.instance.runTransaction((transaction) async {
+      //   transaction.set(
+      //     documentReferenceMess,
+      //     {
+      //       'idFrom': id,
+      //       'idTo': peerId,
+      //     },
+      //   );
+      // });
+      _quienMeChatea();
       listScrollController.animateTo(0.0,
           duration: Duration(milliseconds: 300), curve: Curves.easeOut);
     } else {
@@ -218,6 +219,53 @@ class ChatScreenState extends State<ChatScreen> {
           backgroundColor: Colors.black,
           textColor: Colors.red);
     }
+  }
+  _quienMeChatea()async{
+    List listaMessId = await FirebaseFirestore.instance
+    .collection('users')
+    .doc(id)
+    .get()
+    .then((DocumentSnapshot documentSnapshot) {
+      if (documentSnapshot.exists) {
+        print('Document id === ${documentSnapshot.data()["listChat"]??"[]"}');
+        return documentSnapshot.data()["listChat"]??[];
+      }else{
+        return [];
+      }
+    });
+    print("----------$peerId----------$id-");
+    List listaMesspeerId = await FirebaseFirestore.instance
+    .collection('users')
+    .doc(peerId)
+    .get()
+    .then((DocumentSnapshot documentSnapshot) {
+      if (documentSnapshot.exists) {
+         print('Document peerId === ${documentSnapshot.data()["listChat"]??[]}');
+        return documentSnapshot.data()["listChat"]??[];
+      }else{
+        return [];
+      }
+    });
+    if(!listaMessId.contains(peerId)){
+      listaMessId.add(peerId.toString());
+    }
+    if(!listaMessId.contains(id)){
+      listaMessId.add(id.toString());
+    }
+    if(!listaMesspeerId.contains(peerId)){
+      listaMesspeerId.add(peerId.toString());
+    }
+    if(!listaMesspeerId.contains(id)){
+      listaMesspeerId.add(id.toString());
+    }
+    FirebaseFirestore.instance.collection('users').doc(id)
+    .update({'listChat': listaMessId})
+    .then((value) => print("User Updated"))
+    .catchError((error) => print("Failed to update user: $error"));
+    FirebaseFirestore.instance.collection('users').doc(peerId)
+    .update({'listChat': listaMesspeerId})
+    .then((value) => print("User Updated"))
+    .catchError((error) => print("Failed to update user: $error"));
   }
 
   Widget buildItem(int index, DocumentSnapshot document) {

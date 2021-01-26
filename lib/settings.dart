@@ -387,9 +387,9 @@ class SettingsScreenState extends State<SettingsScreen> {
     if (document.data()['id'] == this.widget.currentId) {
       return Container();
     } else {
-      print(""" ########### MI ID ES ${this.widget.currentId} -  ${document.data()["id"]}""");
-      // List listaVerific = document.data()['chattinList']??[];
-      if(/*listaVerific.contains( this.widget.currentId)*/true){
+      // print(""" ########### MI ID ES ${this.widget.currentId} -  ${document.data()["id"]}""");
+      List listaVerific = document.data()['listChat']??[];
+      if(listaVerific.contains(this.widget.currentId)){
         return Container(
         // color: Colors.red,
         // height: 50,
@@ -450,6 +450,11 @@ class SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
             onPressed: () {
+            print("""
+            esto manda##
+            ${document.id} --- ${ document.data()['userId']}
+            
+            """);
               Navigator.push(
                   context,
                   MaterialPageRoute(
