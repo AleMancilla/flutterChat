@@ -184,6 +184,7 @@ class SettingsScreenState extends State<SettingsScreen> {
                 Container(
                   child: Center(
                     child: Stack(
+                      alignment: Alignment.center,
                       children: <Widget>[
                         (avatarImageFile == null)
                             ? (photoUrl != ''

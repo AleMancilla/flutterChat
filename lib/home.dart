@@ -1275,7 +1275,7 @@ class PageListMascotas extends StatelessWidget {
                     Container(
                       padding: EdgeInsets.symmetric(horizontal: 20,vertical: 10),
                       decoration: BoxDecoration(
-                        color: document.data()['estadoMascota']=="PERDIDO"?Colors.orange:(document.data()['estadoMascota']=="ENCONTRADO")?Colors.green:(document.data()['estadoMascota']=="EN ADOPCION")?Colors.purple:Colors.green,
+                        color: document.data()['estadoMascota']=="PERDIDO"?Colors.purple:(document.data()['estadoMascota']=="ENCONTRADO")?Colors.green:(document.data()['estadoMascota']=="EN ADOPCION")?Colors.orange:Colors.green,
                         borderRadius: BorderRadius.only(bottomRight: Radius.circular(15))
                       ),
                       child: Text("${document.data()['estadoMascota']=="PERDIDO"?"PERDIDO":(document.data()['estadoMascota']=="ENCONTRADO")?"ENCONTRADO":(document.data()['estadoMascota']=="EN ADOPCION")?"EN ADOPCION":"DESCONOCIDO"}",
@@ -1434,6 +1434,76 @@ class PageMapa extends StatefulWidget {
 }
 
 class _PageMapaState extends State<PageMapa> {
+  CameraPosition positionMap = new CameraPosition(
+    target: LatLng(-16.482557865249468, -68.1214064432194),
+    zoom: 16
+  );
+  Position position;
+  GoogleMapController mapController;
+  Completer<GoogleMapController> _controller = Completer();
+  Future<void> _moveTo(CameraPosition position) async {
+    final GoogleMapController controller = await _controller.future;
+    controller.animateCamera(CameraUpdate.newCameraPosition(position));
+  }
+  List<Placemark> placemarks;
+
+  @override
+  void initState() { 
+    super.initState();
+    _cargarDatos();
+  }
+    BitmapDescriptor doggreen;
+    BitmapDescriptor dogpurple;
+    BitmapDescriptor dogorange;
+    BitmapDescriptor catgreen;
+    BitmapDescriptor catpurple;
+    BitmapDescriptor catorange;
+    BitmapDescriptor othergreen;
+    BitmapDescriptor otherpurple;
+    BitmapDescriptor otherorange;
+  _cargarDatos()async{
+    try {
+      position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      positionMap = CameraPosition(
+        target: LatLng(position.latitude, position.longitude),
+        zoom: 16
+      );
+        _obtenerDireccion(position.latitude, position.longitude);
+      // setState(() async{
+      // });
+      _moveTo(positionMap);
+      print("-----inicio-----");
+    } catch (e) {
+    }
+
+    // pinLocationIcon = await BitmapDescriptor.fromAssetImage(ImageConfiguration(devicePixelRatio: 2.5),'assets/destination_map_marker.png');
+    doggreen      = await BitmapDescriptor.fromAssetImage(ImageConfiguration(devicePixelRatio: 2.5),'images/doggreen.png');
+    dogpurple     = await BitmapDescriptor.fromAssetImage(ImageConfiguration(devicePixelRatio: 2.5),'images/dogpurple.png');
+    dogorange     = await BitmapDescriptor.fromAssetImage(ImageConfiguration(devicePixelRatio: 2.5),'images/dogorange.png');
+    catgreen      = await BitmapDescriptor.fromAssetImage(ImageConfiguration(devicePixelRatio: 2.5),'images/catgreen.png');
+    catpurple     = await BitmapDescriptor.fromAssetImage(ImageConfiguration(devicePixelRatio: 2.5),'images/catpurple.png');
+    catorange     = await BitmapDescriptor.fromAssetImage(ImageConfiguration(devicePixelRatio: 2.5),'images/catorange.png');
+    othergreen    = await BitmapDescriptor.fromAssetImage(ImageConfiguration(devicePixelRatio: 2.5),'images/othergreen.png');
+    otherpurple   = await BitmapDescriptor.fromAssetImage(ImageConfiguration(devicePixelRatio: 2.5),'images/otherpurple.png');
+    otherorange   = await BitmapDescriptor.fromAssetImage(ImageConfiguration(devicePixelRatio: 2.5),'images/otherorange.png');
+  }  
+  // @override
+  // void initStatew() async{
+  //   // TODO: implement didChangeDependencies
+  //   super.didChangeDependencies();
+  // }
+
+  _returnIcon(String tipo, String estado){
+    if(tipo =="PERRO" && estado == "PERDIDO") return dogpurple;
+    if(tipo =="PERRO" && estado == "ENCONTRADO") return doggreen;
+    if(tipo =="PERRO" && estado == "EN ADOPCION") return dogorange;
+    if(tipo =="GATO" && estado == "PERDIDO") return catpurple;
+    if(tipo =="GATO" && estado == "ENCONTRADO") return catgreen;
+    if(tipo =="GATO" && estado == "EN ADOPCION") return catorange;
+    if(tipo =="OTRO" && estado == "PERDIDO") return otherpurple;
+    if(tipo =="OTRO" && estado == "ENCONTRADO") return othergreen;
+    if(tipo =="OTRO" && estado == "EN ADOPCION") return otherorange;
+  }
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -1449,9 +1519,18 @@ class _PageMapaState extends State<PageMapa> {
             );
           } else {
             List lista = snapshot.data.documents;
+            List<MarcadorMascota> listaMascotas = [];
             lista.forEach((element) { 
-              print("##-- ${element.data()}");
-              // List coordenadas = element.data()["coordenadasMascota"].split(",")??["",""];
+              print("##-- ${element.data()["id"]}- ${element.data()["coordenadasMascota"]}- ${element.data()["estadoMascota"]}- ${element.data()["tipoMascota"]}");
+              List coordenadas = element.data()["coordenadasMascota"].split(",")??["",""];
+              listaMascotas.add(
+                new MarcadorMascota(
+                  estado: element.data()["estadoMascota"],
+                  idMascota: element.data()["id"],
+                  tipoMascota: element.data()["tipoMascota"],
+                  ubicacion:LatLng(double.parse(coordenadas[0]??0), double.parse(coordenadas[1]??0))
+                )
+              );
               // MarcadorMascota(
               //   estado: element.data()["estadoMascota"], 
               //   ubicacion: LatLng(coordenadas[0], coordenadas[1]), 
@@ -1459,7 +1538,89 @@ class _PageMapaState extends State<PageMapa> {
               // );
 
             });
-            return Container();
+            print(listaMascotas);
+            listaMascotas.forEach((element) { 
+              _markers.add(
+                Marker(
+                  markerId: MarkerId(element.idMascota),
+                  position: element.ubicacion,
+                  icon: _returnIcon(element.tipoMascota,element.estado),
+
+                )
+            );
+            });
+            return Container(
+              width: double.infinity,
+              height: double.infinity,
+              child: Stack(
+                children: [
+                  GoogleMap(
+                            mapType: MapType.normal,
+                            initialCameraPosition: positionMap,
+                            rotateGesturesEnabled: false,
+                            onMapCreated: (GoogleMapController controller) {
+                              _controller.complete(controller);
+                            },
+                            markers: _markers,
+                            // initialCameraPosition: kGooglePlex,
+                            // onMapCreated: (GoogleMapController controller) {
+                            //   _controller.complete(controller);
+                            //   mapController = controller;
+
+                            // },
+                            //  gestureRecognizers: Set()
+                            // ..add(Factory<PanGestureRecognizer>(() => PanGestureRecognizer()))
+                            // ..add(Factory<VerticalDragGestureRecognizer>(() => VerticalDragGestureRecognizer()),)
+                            // ..add(Factory<HorizontalDragGestureRecognizer>( () => HorizontalDragGestureRecognizer()),)
+                            // ..add(Factory<ScaleGestureRecognizer>(() => ScaleGestureRecognizer()),),
+                          ),
+                          Container(
+                            width: double.infinity,
+                            // height: 100,
+                            padding: EdgeInsets.symmetric(horizontal: 20,vertical: 5),
+                            // color: Colors.blue,
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(vertical: 10),
+                                    decoration: BoxDecoration(
+                                      color: Colors.purple,
+                                      borderRadius: BorderRadius.circular(100)
+                                    ),
+                                    child: Text("PERDIDOS",style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold,fontSize: 12),textAlign: TextAlign.center),
+                                  ),
+                                  flex: 1,
+                                ),
+                                Expanded(
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(vertical: 10),
+                                    decoration: BoxDecoration(
+                                      color: Colors.green,
+                                      borderRadius: BorderRadius.circular(100)
+                                    ),
+                                    child: Text("ENCONTRADOS",style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold,fontSize: 12),textAlign: TextAlign.center),
+                                  ),
+                                  flex: 1,
+                                ),
+                                Expanded(
+                                  child: Container(
+                                    // alignment: Alignment.ce,
+                                    padding: EdgeInsets.symmetric(vertical: 10),
+                                    decoration: BoxDecoration(
+                                      color: Colors.orange,
+                                      borderRadius: BorderRadius.circular(100)
+                                    ),
+                                    child: Text("EN ADOPCION",style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold,fontSize: 12),textAlign: TextAlign.center,),
+                                  ),
+                                  flex: 1,
+                                ),
+                              ],
+                            ),
+                          )
+                ],
+              ),
+            );
             // return ListView.builder(
             //   padding: EdgeInsets.all(10.0),
             //   itemBuilder: (context, index) =>
@@ -1471,13 +1632,31 @@ class _PageMapaState extends State<PageMapa> {
       ),
     );
   }
+  Set<Marker> _markers = {};
+  _obtenerDireccion(double lat, double long)async{
+    placemarks = await placemarkFromCoordinates(lat,long);
+      // print(" placemarks[0].administrativeArea == ${placemarks[0].administrativeArea}");
+      // print(" placemarks[0].country == ${placemarks[0].country}");
+      // print(" placemarks[0].isoCountryCode == ${placemarks[0].isoCountryCode}");
+      // print(" placemarks[0].locality == ${placemarks[0].locality}");
+      // print(" placemarks[0].name == ${placemarks[0].name}");
+      // print(" placemarks[0].postalCode == ${placemarks[0].postalCode}");
+      // print(" placemarks[0].street == ${placemarks[0].street}");
+      // print(" placemarks[0].subAdministrativeArea == ${placemarks[0].subAdministrativeArea}");
+      // print(" placemarks[0].subLocality == ${placemarks[0].subLocality}");
+      // print(" placemarks[0].subThoroughfare == ${placemarks[0].subThoroughfare}");
+      // print(" placemarks[0].thoroughfare == ${placemarks[0].thoroughfare}");
+      // ciudad = placemarks[0].locality;
+      // direccion = placemarks[0].street;
+      // controllerDirecction.text = "${placemarks[0].locality}, ${placemarks[0].street}";
+      setState(() {});
+  }
 }
 
 class MarcadorMascota{
   final String estado;
   final LatLng ubicacion;
   final String idMascota;
-
-  MarcadorMascota({@required this.estado,@required  this.ubicacion,@required  this.idMascota});
-  
+  final String tipoMascota;
+  MarcadorMascota({@required this.estado,@required  this.ubicacion,@required  this.idMascota, @required this.tipoMascota});
 }
