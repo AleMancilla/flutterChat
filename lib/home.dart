@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_chat_demo/chat.dart';
 import 'package:flutter_chat_demo/const.dart';
 import 'package:flutter_chat_demo/settings.dart';
+import 'package:flutter_chat_demo/widget/full_photo.dart';
 import 'package:flutter_chat_demo/widget/loading.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -39,8 +40,15 @@ class HomeScreen extends StatefulWidget {
 }
 
 class HomeScreenState extends State<HomeScreen> {
-  HomeScreenState({Key key, @required this.currentUserId});
+  HomeScreenState({@required this.currentUserId});
+  Key key = UniqueKey();
 
+  void restartApp() {
+    setState(() {
+      key = UniqueKey();
+      _currentIndex = 0;
+    });
+  }
   final String currentUserId;
   final FirebaseMessaging firebaseMessaging = FirebaseMessaging();
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -266,115 +274,118 @@ class HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'MASCOTAS',
-          style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        actions: <Widget>[
-          CircleAvatar(
-            backgroundImage: photoUrl!=""? NetworkImage(photoUrl):AssetImage("images/icono.png"),
-            backgroundColor: Colors.transparent,
-            radius: 20.0,
+    return KeyedSubtree(
+      key: key,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            'MASCOTAS',
+            style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
           ),
-          PopupMenuButton<Choice>(
-            onSelected: onItemMenuPress,
-            itemBuilder: (BuildContext context) {
-              return choices.map((Choice choice) {
-                return PopupMenuItem<Choice>(
-                    value: choice,
-                    child: Row(
-                      children: <Widget>[
-                        Icon(
-                          choice.icon,
-                          color: primaryColor,
-                        ),
-                        Container(
-                          width: 10.0,
-                        ),
-                        Text(
-                          choice.title,
-                          style: TextStyle(color: primaryColor),
-                        ),
-                      ],
-                    ));
-              }).toList();
-            },
-          ),
-        ],
-      ),
-      body: WillPopScope(
-        child: Stack(
-          children: <Widget>[
-            // List
-            // Container(
-            //   child: StreamBuilder(
-            //     stream:
-            //         FirebaseFirestore.instance.collection('users').snapshots(),
-            //     builder: (context, snapshot) {
-            //       if (!snapshot.hasData) {
-            //         return Center(
-            //           child: CircularProgressIndicator(
-            //             valueColor: AlwaysStoppedAnimation<Color>(themeColor),
-            //           ),
-            //         );
-            //       } else {
-            //         return ListView.builder(
-            //           padding: EdgeInsets.all(10.0),
-            //           itemBuilder: (context, index) =>
-            //               buildItem(context, snapshot.data.documents[index]),
-            //           itemCount: snapshot.data.documents.length,
-            //         );
-            //       }
-            //     },
-            //   ),
-            // ),
-
-            SafeArea(
-              top: false,
-              child: IndexedStack(
-                index: _currentIndex,
-                children: allDestinations.map<Widget>((Destination destination) {
-                  print(_currentIndex);
-                  return bodyPage(_currentIndex);
-                  // return DestinationView(destination: destination);
-                }).toList(),
-              ),
+          centerTitle: true,
+          actions: <Widget>[
+            CircleAvatar(
+              backgroundImage: photoUrl!=""? NetworkImage(photoUrl):AssetImage("images/icono.png"),
+              backgroundColor: Colors.transparent,
+              radius: 20.0,
             ),
-
-            // Loading
-            Positioned(
-              child: isLoading ? const Loading() : Container(),
-            )
+            PopupMenuButton<Choice>(
+              onSelected: onItemMenuPress,
+              itemBuilder: (BuildContext context) {
+                return choices.map((Choice choice) {
+                  return PopupMenuItem<Choice>(
+                      value: choice,
+                      child: Row(
+                        children: <Widget>[
+                          Icon(
+                            choice.icon,
+                            color: primaryColor,
+                          ),
+                          Container(
+                            width: 10.0,
+                          ),
+                          Text(
+                            choice.title,
+                            style: TextStyle(color: primaryColor),
+                          ),
+                        ],
+                      ));
+                }).toList();
+              },
+            ),
           ],
         ),
-        onWillPop: onBackPress,
-      ),
-      // body:  SafeArea(
-      //   top: false,
-      //   child: IndexedStack(
-      //     index: _currentIndex,
-      //     children: allDestinations.map<Widget>((Destination destination) {
-      //       return DestinationView(destination: destination);
-      //     }).toList(),
-      //   ),
-      // ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (int index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        items: allDestinations.map((Destination destination) {
-          return BottomNavigationBarItem(
-            icon: Icon(destination.icon),
-            backgroundColor: destination.color,
-            title: Text(destination.title)
-          );
-        }).toList(),
+        body: WillPopScope(
+          child: Stack(
+            children: <Widget>[
+              // List
+              // Container(
+              //   child: StreamBuilder(
+              //     stream:
+              //         FirebaseFirestore.instance.collection('users').snapshots(),
+              //     builder: (context, snapshot) {
+              //       if (!snapshot.hasData) {
+              //         return Center(
+              //           child: CircularProgressIndicator(
+              //             valueColor: AlwaysStoppedAnimation<Color>(themeColor),
+              //           ),
+              //         );
+              //       } else {
+              //         return ListView.builder(
+              //           padding: EdgeInsets.all(10.0),
+              //           itemBuilder: (context, index) =>
+              //               buildItem(context, snapshot.data.documents[index]),
+              //           itemCount: snapshot.data.documents.length,
+              //         );
+              //       }
+              //     },
+              //   ),
+              // ),
+
+              SafeArea(
+                top: false,
+                child: IndexedStack(
+                  index: _currentIndex,
+                  children: allDestinations.map<Widget>((Destination destination) {
+                    print(_currentIndex);
+                    return bodyPage(_currentIndex);
+                    // return DestinationView(destination: destination);
+                  }).toList(),
+                ),
+              ),
+
+              // Loading
+              Positioned(
+                child: isLoading ? const Loading() : Container(),
+              )
+            ],
+          ),
+          onWillPop: onBackPress,
+        ),
+        // body:  SafeArea(
+        //   top: false,
+        //   child: IndexedStack(
+        //     index: _currentIndex,
+        //     children: allDestinations.map<Widget>((Destination destination) {
+        //       return DestinationView(destination: destination);
+        //     }).toList(),
+        //   ),
+        // ),
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: (int index) {
+            setState(() {
+              _currentIndex = index;
+            });
+          },
+          items: allDestinations.map((Destination destination) {
+            return BottomNavigationBarItem(
+              icon: Icon(destination.icon),
+              backgroundColor: destination.color,
+              title: Text(destination.title)
+            );
+          }).toList(),
+        ),
       ),
     );
   }
@@ -619,6 +630,8 @@ class _PublicarMascotaState extends State<PublicarMascota> {
     readLocalization();
 
   }
+
+  
   Position position;
   GoogleMapController mapController;
   List<Placemark> placemarks;
@@ -900,7 +913,7 @@ class _PublicarMascotaState extends State<PublicarMascota> {
                         ..add(Factory<HorizontalDragGestureRecognizer>( () => HorizontalDragGestureRecognizer()),)
                         ..add(Factory<ScaleGestureRecognizer>(() => ScaleGestureRecognizer()),),
                       ),
-                      Image.asset("images/marker.png",width: 50,)
+                      Image.asset("images/marker.png",width: 30,)
                     ],
                   ),
                 ),
@@ -1111,6 +1124,7 @@ class AddMascota extends StatelessWidget {
             'namePropietario':namePropietario,
             'numberPropietario':numberPropietario,
             'timestamp': DateTime.now().millisecondsSinceEpoch.toString(),
+            'stateComplete':false
           })
           .then((value) { 
 
@@ -1118,11 +1132,14 @@ class AddMascota extends StatelessWidget {
           msg: 'SE PUBLICO CORRECTAMENTE',
           backgroundColor: Colors.black,
           textColor: Colors.white);
-            print("Mascota Added ${value.id}");
-            FirebaseFirestore.instance.collection('Mascota').doc(value.id)
-              .update({'id': value.id})
-              .then((value) => print("User Updated"))
-              .catchError((error) => print("Failed to update user: $error"));
+          print("Mascota Added ${value.id}");
+          FirebaseFirestore.instance.collection('Mascota').doc(value.id)
+            .update({'id': value.id})
+            .then((value) => print("User Updated"))
+            .catchError((error) => print("Failed to update user: $error"));
+            Future.delayed(Duration(seconds: 2),(){
+              context.findAncestorStateOfType<HomeScreenState>().restartApp();
+            });
           })
           .catchError((error) => print("Failed to add mascota: $error"));
     }
@@ -1188,7 +1205,7 @@ class PageListMascotas extends StatelessWidget {
     return Container(
       child: StreamBuilder(
                 stream:
-                    FirebaseFirestore.instance.collection('Mascota').snapshots(),
+                    FirebaseFirestore.instance.collection('Mascota').orderBy('timestamp', descending: true).snapshots(),
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) {
                     return Center(
@@ -1238,12 +1255,32 @@ class PageListMascotas extends StatelessWidget {
   
   Widget targetItem(BuildContext context, DocumentSnapshot document) {
     return Container(
-        child: FlatButton(
-          child: Column(
-            children: <Widget>[
-              Container(
-                width: MediaQuery.of(context).size.width*0.8,
-                height: MediaQuery.of(context).size.width*0.8,
+      padding: EdgeInsets.only(bottom: 20),
+      decoration: BoxDecoration(
+        color: Colors.grey.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(15)
+      ),
+        child: Column(
+          children: <Widget>[
+            FlatButton(
+              onPressed: () {
+                // Navigator.push(
+                //     context,
+                //     MaterialPageRoute(
+                //         builder: (context) => Chat(
+                //               peerId: document.data()['userId'],
+                //               peerAvatar: document.data()['urlImageMascota'],
+                //             )));
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => FullPhoto(
+                            url: document.data()['urlImageMascota'],
+                            )));
+              },
+              child: Container(
+                width: MediaQuery.of(context).size.width*0.85,
+                height: MediaQuery.of(context).size.width*0.85,
                 child: Stack(
                   children: [
                     Material(
@@ -1255,31 +1292,34 @@ class PageListMascotas extends StatelessWidget {
                                   valueColor:
                                       AlwaysStoppedAnimation<Color>(themeColor),
                                 ),
-                                width: MediaQuery.of(context).size.width*0.8,
-                                height: MediaQuery.of(context).size.width*0.8,
+                                width: MediaQuery.of(context).size.width*0.85,
+                                height: MediaQuery.of(context).size.width*0.85,
                                 padding: EdgeInsets.all(15.0),
                               ),
                               imageUrl: document.data()['urlImageMascota'],
-                              width: MediaQuery.of(context).size.width*0.8,
-                              height: MediaQuery.of(context).size.width*0.8,
+                              width: MediaQuery.of(context).size.width*0.85,
+                              height: MediaQuery.of(context).size.width*0.85,
                               fit: BoxFit.cover,
                             )
                           : Icon(
                               Icons.account_circle,
-                              size: MediaQuery.of(context).size.width*0.8,
+                              size: MediaQuery.of(context).size.width*0.85,
                               color: greyColor,
                             ),
                       borderRadius: BorderRadius.all(Radius.circular(25.0)),
                       clipBehavior: Clip.hardEdge,
                     ),
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 20,vertical: 10),
-                      decoration: BoxDecoration(
-                        color: document.data()['estadoMascota']=="PERDIDO"?Colors.purple:(document.data()['estadoMascota']=="ENCONTRADO")?Colors.green:(document.data()['estadoMascota']=="EN ADOPCION")?Colors.orange:Colors.green,
-                        borderRadius: BorderRadius.only(bottomRight: Radius.circular(15))
-                      ),
-                      child: Text("${document.data()['estadoMascota']=="PERDIDO"?"PERDIDO":(document.data()['estadoMascota']=="ENCONTRADO")?"ENCONTRADO":(document.data()['estadoMascota']=="EN ADOPCION")?"EN ADOPCION":"DESCONOCIDO"}",
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    Positioned(
+                      right: 0,
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 20,vertical: 10),
+                        decoration: BoxDecoration(
+                          color: document.data()['estadoMascota']=="PERDIDO"?Colors.purple:(document.data()['estadoMascota']=="ENCONTRADO")?Colors.green:(document.data()['estadoMascota']=="EN ADOPCION")?Colors.orange:Colors.green,
+                          borderRadius: BorderRadius.only(bottomLeft: Radius.circular(15))
+                        ),
+                        child: Text("${document.data()['estadoMascota']=="PERDIDO"?"PERDIDO":(document.data()['estadoMascota']=="ENCONTRADO")?"ENCONTRADO":(document.data()['estadoMascota']=="EN ADOPCION")?"EN ADOPCION":"DESCONOCIDO"}",
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
                       ),
                     ),
                     Positioned(
@@ -1294,128 +1334,117 @@ class PageListMascotas extends StatelessWidget {
                   ],
                 ),
               ),
-              SizedBox(height: 15,),
-              Container(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
+            ),
+            SizedBox(height: 15,),
+            Container(
+              width: MediaQuery.of(context).size.width*0.8,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
 
-                    RichText(
-                      text: TextSpan(
-                          text: '${document.data()['estadoMascota']=="PERDIDO"?"Me perdi el dia:":(document.data()['estadoMascota']=="ENCONTRADO")?"Me encontraron el dia:":(document.data()['estadoMascota']=="EN ADOPCION")?"Naci la fecha:":"Me perdi el dia:"}',
-                          style: TextStyle(
-                              color: Colors.black, fontSize: 14, fontWeight: FontWeight.w600),
-                          children: <TextSpan>[
-                            TextSpan(text: ' ${document.data()['fecha']}',
-                                style: TextStyle(
-                                    color: Colors.black, fontSize: 14,fontWeight: FontWeight.normal),
-                            )
-                          ]
-                      ),
+                  RichText(
+                    text: TextSpan(
+                        text: '${document.data()['estadoMascota']=="PERDIDO"?"Me perdi el dia:":(document.data()['estadoMascota']=="ENCONTRADO")?"Me encontraron el dia:":(document.data()['estadoMascota']=="EN ADOPCION")?"Naci la fecha:":"Me perdi el dia:"}',
+                        style: TextStyle(
+                            color: Colors.black, fontSize: 14, fontWeight: FontWeight.w600),
+                        children: <TextSpan>[
+                          TextSpan(text: ' ${document.data()['fecha']}',
+                              style: TextStyle(
+                                  color: Colors.black, fontSize: 14,fontWeight: FontWeight.normal),
+                          )
+                        ]
                     ),
-                    RichText(
-                      text: TextSpan(
-                          text: 'A horas:',
-                          style: TextStyle(
-                              color: Colors.black, fontSize: 14, fontWeight: FontWeight.w600),
-                          children: <TextSpan>[
-                            TextSpan(text: ' ${document.data()['hora']}',
-                                style: TextStyle(
-                                    color: Colors.black, fontSize: 14,fontWeight: FontWeight.normal),
-                            )
-                          ]
-                      ),
+                  ),
+                  RichText(
+                    text: TextSpan(
+                        text: 'A horas:',
+                        style: TextStyle(
+                            color: Colors.black, fontSize: 14, fontWeight: FontWeight.w600),
+                        children: <TextSpan>[
+                          TextSpan(text: ' ${document.data()['hora']}',
+                              style: TextStyle(
+                                  color: Colors.black, fontSize: 14,fontWeight: FontWeight.normal),
+                          )
+                        ]
                     ),
-                    RichText(
-                      text: TextSpan(
-                          text: 'En la zona:',
-                          style: TextStyle(
-                              color: Colors.black, fontSize: 14, fontWeight: FontWeight.w600),
-                          children: <TextSpan>[
-                            TextSpan(text: ' ${document.data()['ciudadMascota']}, ${document.data()['direccionMascota']}',
-                                style: TextStyle(
-                                    color: Colors.black, fontSize: 14,fontWeight: FontWeight.normal),
-                            )
-                          ]
-                      ),
+                  ),
+                  RichText(
+                    text: TextSpan(
+                        text: 'En la zona:',
+                        style: TextStyle(
+                            color: Colors.black, fontSize: 14, fontWeight: FontWeight.w600),
+                        children: <TextSpan>[
+                          TextSpan(text: ' ${document.data()['ciudadMascota']}, ${document.data()['direccionMascota']}',
+                              style: TextStyle(
+                                  color: Colors.black, fontSize: 14,fontWeight: FontWeight.normal),
+                          )
+                        ]
                     ),
+                  ),
 
-                    RichText(
-                      text: TextSpan(
-                          text: 'Soy de sexo',
-                          style: TextStyle(
-                              color: Colors.black, fontSize: 14, fontWeight: FontWeight.w600),
-                          children: <TextSpan>[
-                            TextSpan(text: ' ${(document.data()['sexoMascota']=="HEMBRA")?"FEMENINO":"MASCULINO"}',
-                                style: TextStyle(
-                                    color: Colors.black, fontSize: 14,fontWeight: FontWeight.normal),
-                            )
-                          ]
-                      ),
+                  RichText(
+                    text: TextSpan(
+                        text: 'Soy de sexo',
+                        style: TextStyle(
+                            color: Colors.black, fontSize: 14, fontWeight: FontWeight.w600),
+                        children: <TextSpan>[
+                          TextSpan(text: ' ${(document.data()['sexoMascota']=="HEMBRA")?"FEMENINO":"MASCULINO"}',
+                              style: TextStyle(
+                                  color: Colors.black, fontSize: 14,fontWeight: FontWeight.normal),
+                          )
+                        ]
                     ),
+                  ),
 
-                    RichText(
-                      text: TextSpan(
-                          text: 'Mi Descripcion:',
-                          style: TextStyle(
-                              color: Colors.black, fontSize: 14, fontWeight: FontWeight.w600),
-                          children: <TextSpan>[
-                            TextSpan(text: ' ${document.data()['descripcionMascota']}',
-                                style: TextStyle(
-                                    color: Colors.black, fontSize: 14,fontWeight: FontWeight.normal),
-                            )
-                          ]
-                      ),
+                  RichText(
+                    text: TextSpan(
+                        text: 'Mi Descripcion:',
+                        style: TextStyle(
+                            color: Colors.black, fontSize: 14, fontWeight: FontWeight.w600),
+                        children: <TextSpan>[
+                          TextSpan(text: ' ${document.data()['descripcionMascota']}',
+                              style: TextStyle(
+                                  color: Colors.black, fontSize: 14,fontWeight: FontWeight.normal),
+                          )
+                        ]
                     ),
+                  ),
 
 
-                    RichText(
-                      text: TextSpan(
-                          text: 'Nombre de mi ${document.data()['estadoMascota']=="PERDIDO"?"Dueño es:":(document.data()['estadoMascota']=="ENCONTRADO")?"rescatador es:":(document.data()['estadoMascota']=="ADOPCION")?"adoptador es:":"dueño es:"}:',
-                          style: TextStyle(
-                              color: Colors.black, fontSize: 14, fontWeight: FontWeight.w600),
-                          children: <TextSpan>[
-                            TextSpan(text: ' ${document.data()['namePropietario']}',
-                                style: TextStyle(
-                                    color: Colors.black, fontSize: 14,fontWeight: FontWeight.normal),
-                            )
-                          ]
-                      ),
+                  RichText(
+                    text: TextSpan(
+                        text: 'Nombre de mi ${document.data()['estadoMascota']=="PERDIDO"?"Dueño es:":(document.data()['estadoMascota']=="ENCONTRADO")?"rescatador es:":(document.data()['estadoMascota']=="ADOPCION")?"adoptador es:":"dueño es:"}',
+                        style: TextStyle(
+                            color: Colors.black, fontSize: 14, fontWeight: FontWeight.w600),
+                        children: <TextSpan>[
+                          TextSpan(text: ' ${document.data()['namePropietario']}',
+                              style: TextStyle(
+                                  color: Colors.black, fontSize: 14,fontWeight: FontWeight.normal),
+                          )
+                        ]
                     ),
-                    RichText(
-                      text: TextSpan(
-                          text: 'Lo puedes llamar al numero:',
-                          style: TextStyle(
-                              color: Colors.black, fontSize: 14, fontWeight: FontWeight.w600),
-                          children: <TextSpan>[
-                            TextSpan(text: ' ${document.data()['numberPropietario']}',
-                                style: TextStyle(
-                                    color: Colors.black, fontSize: 14,fontWeight: FontWeight.normal),
-                            )
-                          ]
-                      ),
+                  ),
+                  RichText(
+                    text: TextSpan(
+                        text: 'Lo puedes llamar al numero:',
+                        style: TextStyle(
+                            color: Colors.black, fontSize: 14, fontWeight: FontWeight.w600),
+                        children: <TextSpan>[
+                          TextSpan(text: ' ${document.data()['numberPropietario']}',
+                              style: TextStyle(
+                                  color: Colors.black, fontSize: 14,fontWeight: FontWeight.normal),
+                          )
+                        ]
                     ),
+                  ),
 
-                  ],
-                ),
-                // margin: EdgeInsets.only(left: 20.0),
+                ],
               ),
-            ],
-          ),
-          onPressed: () {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => Chat(
-                          peerId: document.data()['userId'],
-                          peerAvatar: document.data()['urlImageMascota'],
-                        )));
-          },
-          color: greyColor2,
-          padding: EdgeInsets.fromLTRB(25.0, 10.0, 25.0, 10.0),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+              // margin: EdgeInsets.only(left: 20.0),
+            ),
+            ////////////////////////////////////
+          ],
         ),
         margin: EdgeInsets.only(bottom: 10.0, left: 5.0, right: 5.0),
       );
@@ -1545,7 +1574,7 @@ class _PageMapaState extends State<PageMapa> {
                   markerId: MarkerId(element.idMascota),
                   position: element.ubicacion,
                   icon: _returnIcon(element.tipoMascota,element.estado),
-
+                  
                 )
             );
             });

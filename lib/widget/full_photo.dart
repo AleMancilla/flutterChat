@@ -13,7 +13,7 @@ class FullPhoto extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'FULL PHOTO',
+          'FOTO',
           style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
