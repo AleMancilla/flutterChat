@@ -1255,7 +1255,7 @@ class PageListMascotas extends StatelessWidget {
   
   Widget targetItem(BuildContext context, DocumentSnapshot document) {
     return Container(
-      padding: EdgeInsets.only(bottom: 20),
+      // padding: EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
         color: Colors.grey.withOpacity(0.3),
         borderRadius: BorderRadius.circular(15)
@@ -1264,13 +1264,7 @@ class PageListMascotas extends StatelessWidget {
           children: <Widget>[
             FlatButton(
               onPressed: () {
-                // Navigator.push(
-                //     context,
-                //     MaterialPageRoute(
-                //         builder: (context) => Chat(
-                //               peerId: document.data()['userId'],
-                //               peerAvatar: document.data()['urlImageMascota'],
-                //             )));
+                
                 Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -1444,6 +1438,46 @@ class PageListMascotas extends StatelessWidget {
               // margin: EdgeInsets.only(left: 20.0),
             ),
             ////////////////////////////////////
+            Container(
+              height: 50,
+              decoration: BoxDecoration(
+                color: Colors.grey.withOpacity(0.3),
+                borderRadius: BorderRadius.only(bottomLeft: Radius.circular(15),bottomRight:  Radius.circular(15))
+              ),
+              margin: EdgeInsets.only(top: 20),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: InkWell(
+                      onTap: (){
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => Chat(
+                                      peerId: document.data()['userId'],
+                                      peerAvatar: document.data()['urlImageMascota'],
+                                    )));
+                      },
+                      child: Container(
+                        alignment: Alignment.centerLeft,
+                        height: 50,
+                        child: Text("Mandar un mensaje..."),
+                        padding: EdgeInsets.only(left: 20),
+                  ),
+                    )),
+                  InkWell(
+                    child: Container(
+                      height: 50,
+                      padding: EdgeInsets.symmetric(horizontal: 20) ,
+                      child: Icon(Icons.share),
+                    ),
+                    onTap: (){
+
+                    },
+                  )
+                ],
+              ),
+            )
           ],
         ),
         margin: EdgeInsets.only(bottom: 10.0, left: 5.0, right: 5.0),
