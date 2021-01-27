@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
+import 'main.dart';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -25,8 +27,8 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geolocator/geolocator.dart';
-
-import 'main.dart';
+import 'package:esys_flutter_share/esys_flutter_share.dart';
+import 'package:flutter/services.dart';
 
 FirebaseFirestore firestore = FirebaseFirestore.instance;
 
@@ -1469,12 +1471,58 @@ class PageListMascotas extends StatelessWidget {
                     child: Container(
                       height: 50,
                       padding: EdgeInsets.symmetric(horizontal: 20) ,
+                      child: Icon(Icons.copy),
+                    ),
+                    onTap: ()async {
+                      Fluttertoast.showToast(
+                      msg: 'Texto copiado',
+                      backgroundColor: Colors.black,
+                      textColor: Colors.white);
+
+                      String texto = """${document.data()['estadoMascota']=="PERDIDO"?"Me perdi el dia:":(document.data()['estadoMascota']=="ENCONTRADO")?"Me encontraron el dia:":(document.data()['estadoMascota']=="EN ADOPCION")?"Naci la fecha:":"Me perdi el dia:"} ${document.data()['fecha']}
+                      A horas: ${document.data()['hora']}
+                      En la zona: ${document.data()['ciudadMascota']}, ${document.data()['direccionMascota']}
+                      Soy de sexo: ${(document.data()['sexoMascota']=="HEMBRA")?"FEMENINO":"MASCULINO"}
+                      Mi Descripcion: ${document.data()['descripcionMascota']}
+                      Nombre de mi ${document.data()['estadoMascota']=="PERDIDO"?"Dueño es:":(document.data()['estadoMascota']=="ENCONTRADO")?"rescatador es:":(document.data()['estadoMascota']=="ADOPCION")?"adoptador es:":"dueño es:"} ${document.data()['namePropietario']}
+                      Lo puedes llamar al numero: ${document.data()['numberPropietario']}
+                      """;
+                      Clipboard.setData(new ClipboardData(text: texto));
+                    },
+                  ),
+                  InkWell(
+                    child: Container(
+                      height: 50,
+                      padding: EdgeInsets.symmetric(horizontal: 20) ,
                       child: Icon(Icons.share),
                     ),
-                    onTap: (){
+                    onTap: ()async {
+                      String texto = """${document.data()['estadoMascota']=="PERDIDO"?"Me perdi el dia:":(document.data()['estadoMascota']=="ENCONTRADO")?"Me encontraron el dia:":(document.data()['estadoMascota']=="EN ADOPCION")?"Naci la fecha:":"Me perdi el dia:"} ${document.data()['fecha']}
+                      *A horas:* ${document.data()['hora']}
+                      *En la zona:* ${document.data()['ciudadMascota']}, ${document.data()['direccionMascota']}
+                      *Soy de sexo:* ${(document.data()['sexoMascota']=="HEMBRA")?"FEMENINO":"MASCULINO"}
+                      *Mi Descripcion:* ${document.data()['descripcionMascota']}
+                      *Nombre de mi ${document.data()['estadoMascota']=="PERDIDO"?"Dueño es:*":(document.data()['estadoMascota']=="ENCONTRADO")?"rescatador es:*":(document.data()['estadoMascota']=="ADOPCION")?"adoptador es:*":"dueño es:*"} ${document.data()['namePropietario']}
+                      *Lo puedes llamar al numero:* ${document.data()['numberPropietario']}
+                      """;
+                      // var response = await get("https://ar.zoetis.com/_locale-assets/mcm-portal-assets/publishingimages/especie/caninos_perro_img.png");
+                      // var documentDirectory = await getApplicationDocumentsDirectory();
 
+                      // File file = new File(
+                      //   pat.join(documentDirectory.path, 'imagetest.png')
+                      // );
+
+                      // file.writeAsBytesSync(response.bodyBytes);
+                      // print("DIRECCION PATH ### $file");
+                      // // CachedNetworkImageProvider(url);
+                      // // Share.share('check out my website https://example.com');
+                      // Share.shareFiles(['$file'], text: 'Great picture');
+                      var request = await HttpClient().getUrl(Uri.parse(document.data()['urlImageMascota']));
+                      var response = await request.close();
+                      Uint8List bytes = await consolidateHttpClientResponseBytes(response);
+                      await Share.file('ESYS AMLOG', 'amlog.jpg', bytes, 'image/jpg',text: texto);
                     },
-                  )
+                  ),
                 ],
               ),
             )

@@ -27,6 +27,8 @@ dependencies:
   google_maps_flutter: ^0.5.5
   geolocator: ^6.1.4
   geocoding: ^1.0.5
+  share_plus: ^1.2.0
+  esys_flutter_share: ^1.0.2 
 
 dev_dependencies:
   flutter_test:
